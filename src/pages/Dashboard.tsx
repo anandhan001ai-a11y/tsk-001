@@ -236,7 +236,7 @@ function Dashboard() {
                           <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getPriorityColor(task.priority)}`}>
                             {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} Priority
                           </span>
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(task.status)}`}>
+                          <span className={`task-status px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(task.status)}`}>
                             {task.status === 'in-progress' ? 'In Progress' : task.status.charAt(0).toUpperCase() + task.status.slice(1)}
                           </span>
                         </div>
