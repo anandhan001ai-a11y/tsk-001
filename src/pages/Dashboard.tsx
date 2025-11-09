@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import Profile from '../components/Profile';
 
 interface Task {
   id: string;
@@ -20,6 +21,7 @@ interface Subtask {
 
 function Dashboard() {
   const navigate = useNavigate();
+  const [userId, setUserId] = useState<string | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
@@ -49,6 +51,8 @@ function Dashboard() {
         navigate('/login');
         return;
       }
+
+      setUserId(user.id);
 
       const { data, error } = await supabase
         .from('tasks')
@@ -297,7 +301,9 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-400 via-blue-300 to-cyan-200 py-12 px-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 order-2 lg:order-1">
         <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-12">
           <h1 className="text-4xl md:text-5xl font-bold text-blue-600 mb-12 text-center">
             Your Tasks
@@ -489,6 +495,12 @@ function Dashboard() {
             Logout
           </button>
         </div>
+      </div>
+
+      <div className="lg:col-span-1 order-1 lg:order-2">
+        {userId && <Profile userId={userId} />}
+      </div>
+    </div>
       </div>
     </div>
   );
