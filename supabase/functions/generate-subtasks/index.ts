@@ -45,7 +45,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const systemPrompt = `You are a helpful assistant that breaks down big tasks into simple, clear subtasks. Given a main task title, return a list of 5 to 7 clear, short subtasks needed to complete it. The subtasks should be practical and written in plain language. Return them as a plain JSON array. Do not include any extra text or explanations.`;
+    const systemPrompt = `You are a helpful assistant that breaks down big tasks into simple, clear subtasks. Given a main task title, return a list of 3 to 5 clear, short subtasks needed to complete it. The subtasks should be practical and written in plain language.`;
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -62,11 +62,12 @@ Deno.serve(async (req: Request) => {
           },
           {
             role: "user",
-            content: `Generate subtasks for this task: "${taskTitle}"`,
+            content: `Generate subtasks for this task: "${taskTitle}". Return only a JSON array of strings, no other text.`,
           },
         ],
-        temperature: 1,
-        max_tokens: 2048,
+        temperature: 0.7,
+        max_tokens: 500,
+        response_format: { type: "json_object" },
       }),
     });
 
@@ -103,7 +104,34 @@ Deno.serve(async (req: Request) => {
 
     let subtasks;
     try {
-      subtasks = JSON.parse(content);
+      let cleanedContent = content.trim();
+
+      if (cleanedContent.startsWith("```json")) {
+        cleanedContent = cleanedContent.replace(/^```json\s*/, "").replace(/```\s*$/, "");
+      } else if (cleanedContent.startsWith("```")) {
+        cleanedContent = cleanedContent.replace(/^```\s*/, "").replace(/```\s*$/, "");
+      }
+
+      const parsed = JSON.parse(cleanedContent.trim());
+
+      if (Array.isArray(parsed)) {
+        subtasks = parsed;
+      } else if (parsed.subtasks && Array.isArray(parsed.subtasks)) {
+        subtasks = parsed.subtasks;
+      } else if (parsed.tasks && Array.isArray(parsed.tasks)) {
+        subtasks = parsed.tasks;
+      } else {
+        const values = Object.values(parsed);
+        if (values.length > 0 && Array.isArray(values[0])) {
+          subtasks = values[0];
+        } else {
+          throw new Error("Response does not contain an array");
+        }
+      }
+
+      if (!Array.isArray(subtasks) || subtasks.length === 0) {
+        throw new Error("No subtasks found in response");
+      }
     } catch (parseError) {
       console.error("Failed to parse AI response:", content);
       return new Response(
