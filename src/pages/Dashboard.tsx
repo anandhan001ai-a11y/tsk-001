@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import Profile from '../components/Profile';
+import { Search } from 'lucide-react';
 
 interface Task {
   id: string;
